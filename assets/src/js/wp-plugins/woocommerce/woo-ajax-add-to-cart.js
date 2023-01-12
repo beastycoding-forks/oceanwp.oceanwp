@@ -79,21 +79,29 @@ class WooAjaxAddToCart {
         data: formData,
 
         success: function (response) {
-          /**
-           * Because Woocommerce plugin uses jQuery custom event,
-           * We also have to use jQuery to customize this event.
-           */
-          jQuery("body").trigger("wc_fragment_refresh");
-          jQuery("body").trigger("added_to_cart", [
-            response.fragments,
-            response.cart_hash,
-            jQuery(addToCartBtn),
-            'wc_fragments_refreshed',
-          ]);
+          const $html       = jQuery.parseHTML( response );
+          let $errorsWrapper   = jQuery( '.woocommerce-notices-wrapper', $html );
+          let $errorsList   = jQuery( '.woocommerce-notices-wrapper ul', $html );
+          if($errorsList.length > 0) {
+              jQuery('.woocommerce-notices-wrapper').html($errorsWrapper.html());
+              t.classList.remove("loading");
+          } else {
+            /**
+             * Because Woocommerce plugin uses jQuery custom event,
+             * We also have to use jQuery to customize this event.
+             */
+            jQuery("body").trigger("wc_fragment_refresh");
+            jQuery("body").trigger("added_to_cart", [
+              response.fragments,
+              response.cart_hash,
+              jQuery(addToCartBtn),
+              'wc_fragments_refreshed'
+            ]);
 
-          if (options.cart_redirect_after_add === "yes") {
-            window.location = options.cart_url;
-            return;
+            if (options.cart_redirect_after_add === "yes") {
+              window.location = options.cart_url;
+              return;
+            }
           }
         },
       });
